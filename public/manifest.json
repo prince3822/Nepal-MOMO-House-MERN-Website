@@ -1,0 +1,21 @@
+{
+  "name": "Nepal MOMO House",
+  "short_name": "Nepal MOMO",
+  "description": "Authentic Himalayan Taste & Quick Online Takeaway",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#E11D48",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/assets/logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
