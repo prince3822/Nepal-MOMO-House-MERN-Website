@@ -462,7 +462,7 @@ export const ShopProvider = ({ children }) => {
     return placePaidOrder(customerDetails);
   };
 
-  const updateOrderStatus = (orderId, newStatus) => {
+  const updateOrderStatus = async (orderId, newStatus) => {
     setOrders((prev) =>
       prev.map((o) =>
         o.id === orderId || o._id === orderId || o.token === orderId || o.token === `#${orderId}`
@@ -470,6 +470,20 @@ export const ShopProvider = ({ children }) => {
           : o
       )
     );
+    setLatestOrder((prev) =>
+      prev && (prev.id === orderId || prev._id === orderId || prev.token === orderId || prev.token === `#${orderId}`)
+        ? { ...prev, status: newStatus }
+        : prev
+    );
+    try {
+      await fetch(`${API_BASE_URL}/api/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+    } catch (e) {
+      console.error('Error updating order status on API:', e);
+    }
   };
 
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);

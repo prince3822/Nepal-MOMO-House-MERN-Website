@@ -28,6 +28,19 @@ const loadRazorpayScript = () => {
   });
 };
 
+export const sanitizePhoneNumber = (rawPhone) => {
+  if (!rawPhone) return '';
+  let str = String(rawPhone).trim();
+  if (str.startsWith('+91')) {
+    str = str.slice(3);
+  } else if (str.startsWith('91') && str.replace(/\D/g, '').length > 10) {
+    str = str.replace(/\D/g, '').slice(2);
+  } else if (str.startsWith('0') && str.replace(/\D/g, '').length > 10) {
+    str = str.replace(/\D/g, '').slice(1);
+  }
+  return str.replace(/\D/g, '').slice(0, 10);
+};
+
 export const CheckoutModal = () => {
   const [isOffline, setIsOffline] = React.useState(!navigator.onLine);
 
@@ -81,7 +94,7 @@ export const CheckoutModal = () => {
     const phoneToUse = typeof phoneOverride === 'string' ? phoneOverride : customerPhone;
 
     const finalName = nameToUse.trim();
-    const cleanPhone = phoneToUse.trim().replace(/\D/g, '');
+    const cleanPhone = sanitizePhoneNumber(phoneToUse);
 
     if (!finalName) {
       setErrorMsg('Please enter your full name.');
@@ -93,7 +106,7 @@ export const CheckoutModal = () => {
       return;
     }
 
-    const formattedContact = cleanPhone.startsWith('+91') ? cleanPhone : `+91${cleanPhone}`;
+    const formattedContact = `+91${cleanPhone}`;
 
     // Store customer details in localStorage for auto-fill on repeat visits
     try {
@@ -109,7 +122,16 @@ export const CheckoutModal = () => {
       const createRes = await fetch(`${API_BASE_URL}/api/payment/create-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ totalAmount: cartTotal })
+        body: JSON.stringify({
+          totalAmount: cartTotal,
+          items: cart.map((i) => ({
+            id: i.id || i.itemId,
+            itemId: i.itemId || i.id,
+            name: i.name,
+            quantity: i.quantity,
+            price: i.price
+          }))
+        })
       });
 
       const orderData = await createRes.json();
@@ -300,10 +322,10 @@ export const CheckoutModal = () => {
                 </label>
                 <input
                   type="tel"
-                  maxLength={10}
-                  placeholder="e.g., 95233xxxxx"
+                  maxLength={13}
+                  placeholder="e.g., 95233xxxxx or +91 95233xxxxx"
                   value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  onChange={(e) => setCustomerPhone(sanitizePhoneNumber(e.target.value))}
                   className="w-full bg-stone-50 border border-stone-300 rounded-xl p-3 font-medium text-stone-900 text-sm focus:outline-none focus:border-red-600"
                   required
                 />

@@ -54,7 +54,6 @@ export const AdminLogin = ({ onBackToSite, onLoginSuccess }) => {
 
       setIsSending(false);
       setStep(2);
-      setShowDemoOtpToast(true);
       setResendTimer(30);
     } catch (err) {
       setIsSending(false);
@@ -91,14 +90,9 @@ export const AdminLogin = ({ onBackToSite, onLoginSuccess }) => {
         }
       } catch (e) {}
 
-      // Fallback verification if offline / mock check
-      if (otp.trim() === '123456') {
-        isSuccess = true;
-      }
-
       if (isSuccess) {
         setSuccessMsg('OTP Verified! Access Granted.');
-        // Set mock session token in localStorage as requested (admin_token & nmh_admin_token)
+        // Set session token in localStorage
         localStorage.setItem('admin_token', token);
         localStorage.setItem('nmh_admin_token', token);
         localStorage.setItem('nmh_admin_auth', 'true');
@@ -113,11 +107,11 @@ export const AdminLogin = ({ onBackToSite, onLoginSuccess }) => {
           }
         }, 600);
       } else {
-        setErrorMsg('Invalid OTP, please enter 123456');
+        setErrorMsg('Invalid OTP / PIN. Access Denied.');
       }
     } catch (err) {
       console.error('OTP Verification Error:', err);
-      setErrorMsg('Invalid OTP, please enter 123456');
+      setErrorMsg('Invalid OTP / PIN. Access Denied.');
     } finally {
       setIsVerifying(false);
     }
@@ -155,21 +149,7 @@ export const AdminLogin = ({ onBackToSite, onLoginSuccess }) => {
           </div>
         </div>
 
-        {/* Demo OTP Banner Toast */}
-        {showDemoOtpToast && (
-          <div className="bg-gradient-to-r from-amber-500/20 to-amber-600/20 text-amber-300 text-xs font-bold p-3.5 rounded-2xl border border-amber-500/40 flex items-center justify-between shadow-lg animate-in slide-in-from-top-2 duration-300">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>Demo OTP: <strong className="text-white font-mono text-sm tracking-wider">123456</strong> (valid for 5 mins)</span>
-            </div>
-            <button
-              onClick={() => setOtp('123456')}
-              className="bg-amber-500 hover:bg-amber-400 text-stone-950 font-black text-[10px] uppercase px-2.5 py-1 rounded-lg shrink-0 transition-all cursor-pointer"
-            >
-              Auto Fill
-            </button>
-          </div>
-        )}
+
 
         {/* Status Notifications */}
         {errorMsg && (

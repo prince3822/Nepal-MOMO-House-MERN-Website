@@ -68,13 +68,42 @@ const sanitizeInput = (str) => {
 
 const sanitizePhone = (phone) => {
   if (!phone) return '';
-  return String(phone).trim().replace(/\D/g, '').slice(0, 10);
+  let str = String(phone).trim();
+  if (str.startsWith('+91')) {
+    str = str.slice(3);
+  } else if (str.startsWith('91') && str.replace(/\D/g, '').length > 10) {
+    str = str.replace(/\D/g, '').slice(2);
+  } else if (str.startsWith('0') && str.replace(/\D/g, '').length > 10) {
+    str = str.replace(/\D/g, '').slice(1);
+  }
+  return str.replace(/\D/g, '').slice(0, 10);
 };
 
 // In-memory fallback storage when MongoDB connection is unavailable
 const inMemoryOrders = [];
 let inMemorySettings = null;
 const inMemoryMenu = [];
+const defaultCatalogMenu = [
+  { id: "steam-1", itemId: "steam-1", name: "Veg Steam", category: "steamed", price: 90, isVeg: true, spicyLevel: 1, isAvailable: true, description: "Authentic Nepalese steamed dumplings filled with finely chopped fresh vegetables.", image: "/assets/momo_hero.jpg" },
+  { id: "steam-2", itemId: "steam-2", name: "Paneer Steam", category: "steamed", price: 110, isVeg: true, spicyLevel: 1, isAvailable: true, description: "Soft cottage cheese dumplings.", image: "/assets/momo_hero.jpg" },
+  { id: "steam-3", itemId: "steam-3", name: "Chicken Steam", category: "steamed", price: 110, isVeg: false, spicyLevel: 2, isAvailable: true, description: "Juicy minced chicken momos.", image: "/assets/momo_hero.jpg" },
+  { id: "steam-4", itemId: "steam-4", name: "Mutton Steam", category: "steamed", price: 135, isVeg: false, spicyLevel: 2, isAvailable: true, description: "Rich tender mutton minced dumplings.", image: "/assets/momo_hero.jpg" },
+  { id: "fry-1", itemId: "fry-1", name: "Veg Fry", category: "fried", price: 90, isVeg: true, spicyLevel: 1, isAvailable: true, description: "Crispy golden fried veg momos.", image: "/assets/kurkure_momo.jpg" },
+  { id: "fry-2", itemId: "fry-2", name: "Paneer Fry", category: "fried", price: 110, isVeg: true, spicyLevel: 1, isAvailable: true, description: "Deep fried paneer momos.", image: "/assets/kurkure_momo.jpg" },
+  { id: "fry-3", itemId: "fry-3", name: "Chicken Fry", category: "fried", price: 110, isVeg: false, spicyLevel: 2, isAvailable: true, description: "Succulent chicken dumplings deep fried.", image: "/assets/kurkure_momo.jpg" },
+  { id: "fry-4", itemId: "fry-4", name: "Mutton Fry", category: "fried", price: 135, isVeg: false, spicyLevel: 2, isAvailable: true, description: "Crispy deep fried spiced mutton momos.", image: "/assets/kurkure_momo.jpg" },
+  { id: "chilly-momo-1", itemId: "chilly-momo-1", name: "Veg Chilly Momo", category: "chilly-momo", price: 165, isVeg: true, spicyLevel: 3, isAvailable: true, description: "Fried veg momos wok-tossed in dark soy sauce.", image: "/assets/jhol_momo.jpg" },
+  { id: "chilly-momo-2", itemId: "chilly-momo-2", name: "Paneer Chilly Momo", category: "chilly-momo", price: 180, isVeg: true, spicyLevel: 3, isAvailable: true, description: "Crispy paneer momos tossed in spicy chilli gravy.", image: "/assets/jhol_momo.jpg" },
+  { id: "chilly-momo-3", itemId: "chilly-momo-3", name: "Chicken Chilly Momo", category: "chilly-momo", price: 180, isVeg: false, spicyLevel: 3, isAvailable: true, description: "Chicken momos tossed in fiery garlic chilli sauce.", image: "/assets/jhol_momo.jpg" },
+  { id: "chilly-momo-4", itemId: "chilly-momo-4", name: "Mutton Chilly Momo", category: "chilly-momo", price: 200, isVeg: false, spicyLevel: 3, isAvailable: true, description: "Mutton momos tossed in extra spicy red chilli sauce.", image: "/assets/jhol_momo.jpg" },
+  { id: "kurkure-1", itemId: "kurkure-1", name: "Veg Kurkure", category: "kurkure", price: 145, isVeg: true, spicyLevel: 2, isAvailable: true, description: "Extra crunchy cornflakes coated fried veg momos.", image: "/assets/kurkure_momo.jpg" },
+  { id: "kurkure-2", itemId: "kurkure-2", name: "Paneer Kurkure", category: "kurkure", price: 155, isVeg: true, spicyLevel: 2, isAvailable: true, description: "Double coated crispy paneer momos.", image: "/assets/kurkure_momo.jpg" },
+  { id: "kurkure-3", itemId: "kurkure-3", name: "Chicken Kurkure", category: "kurkure", price: 155, isVeg: false, spicyLevel: 2, isAvailable: true, description: "Famous Nepal MOMO House special crunchy chicken momos.", image: "/assets/kurkure_momo.jpg" },
+  { id: "kurkure-4", itemId: "kurkure-4", name: "Mutton Kurkure", category: "kurkure", price: 180, isVeg: false, spicyLevel: 2, isAvailable: true, description: "Crispy coated mutton momos.", image: "/assets/kurkure_momo.jpg" },
+  { id: "chowmein-1", itemId: "chowmein-1", name: "Veg Chowmein", category: "chowmein", price: 100, isVeg: true, spicyLevel: 2, isAvailable: true, description: "Street style wok tossed Hakka noodles.", image: "/assets/chowmein_fastfood.jpg" },
+  { id: "chowmein-2", itemId: "chowmein-2", name: "Egg Chowmein", category: "chowmein", price: 135, isVeg: false, spicyLevel: 2, isAvailable: true, description: "Fried noodles loaded with scrambled eggs.", image: "/assets/chowmein_fastfood.jpg" },
+  { id: "chowmein-3", itemId: "chowmein-3", name: "Chicken Chowmein", category: "chowmein", price: 170, isVeg: false, spicyLevel: 2, isAvailable: true, description: "Spicy chicken Hakka chowmein.", image: "/assets/chowmein_fastfood.jpg" }
+];
 let inMemoryOffers = [
   {
     id: "offer-1",
@@ -158,11 +187,10 @@ app.get('/api/health', (req, res) => {
 // 2. POST /api/admin/send-otp (Send Mobile OTP)
 app.post('/api/admin/send-otp', (req, res) => {
   const { phone } = req.body;
-  console.log(`📲 Mock Admin OTP requested for ${phone || '+91 9523349571'}`);
+  console.log(`📲 Admin OTP requested for ${phone || '+91 9523349571'}`);
   return res.json({
     success: true,
-    message: 'OTP sent successfully',
-    demoOtp: '123456',
+    message: 'OTP sent successfully to registered admin mobile',
     validForMins: 5
   });
 });
@@ -174,7 +202,8 @@ app.post('/api/admin/verify-otp', (req, res) => {
     return res.status(400).json({ success: false, error: 'OTP is required' });
   }
 
-  if (String(otp).trim() === '123456') {
+  const validPin = process.env.ADMIN_PIN || adminPin;
+  if (String(otp).trim() === String(validPin).trim()) {
     const sessionToken = `admin_token_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
     console.log('📲 Admin authenticated successfully via Mobile OTP');
     return res.json({
@@ -185,9 +214,9 @@ app.post('/api/admin/verify-otp', (req, res) => {
   }
 
   console.log('❌ Invalid Admin OTP attempt');
-  return res.status(400).json({
+  return res.status(401).json({
     success: false,
-    error: 'Invalid OTP, please enter 123456'
+    error: 'Incorrect OTP / PIN. Access Denied.'
   });
 });
 
@@ -198,7 +227,8 @@ app.post('/api/admin/verify-pin', (req, res) => {
     return res.status(400).json({ success: false, error: 'PIN is required' });
   }
 
-  if (String(pin).trim() === String(adminPin).trim() || String(pin).trim() === '123456') {
+  const validPin = process.env.ADMIN_PIN || adminPin;
+  if (String(pin).trim() === String(validPin).trim()) {
     const sessionToken = `admin_token_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
     console.log('🔑 Admin authenticated successfully');
     return res.json({
@@ -352,10 +382,14 @@ app.post('/api/settings', async (req, res) => {
 app.get('/api/menu', async (req, res) => {
   try {
     if (mongoose.connection.readyState === 1) {
-      const items = await MenuItem.find().sort({ createdAt: -1 });
+      let items = await MenuItem.find().sort({ createdAt: -1 });
+      if (!items || items.length === 0) {
+        items = await MenuItem.insertMany(defaultCatalogMenu);
+      }
       return res.json({ success: true, items });
     } else {
-      return res.json({ success: true, items: inMemoryMenu });
+      const items = inMemoryMenu.length > 0 ? inMemoryMenu : defaultCatalogMenu;
+      return res.json({ success: true, items });
     }
   } catch (err) {
     console.error('Error fetching menu items:', err);
@@ -568,16 +602,70 @@ app.delete('/api/offers/:id', async (req, res) => {
   }
 });
 
+// Helper: Recalculate order total amount on server side using DB & catalog item prices
+const calculateOrderTotal = async (items) => {
+  if (!Array.isArray(items) || items.length === 0) return 0;
+
+  let dbMenu = [];
+  let dbOffers = [];
+  try {
+    if (mongoose.connection.readyState === 1) {
+      dbMenu = await MenuItem.find();
+      dbOffers = await Offer.find();
+      if (!dbMenu || dbMenu.length === 0) {
+        dbMenu = await MenuItem.insertMany(defaultCatalogMenu);
+      }
+    }
+  } catch (e) {}
+
+  const catalogMenu = dbMenu.length > 0 ? dbMenu : (inMemoryMenu.length > 0 ? inMemoryMenu : defaultCatalogMenu);
+  const catalogOffers = dbOffers.length > 0 ? dbOffers : inMemoryOffers;
+
+  let total = 0;
+  for (const item of items) {
+    const qty = Math.max(1, Number(item.quantity) || 1);
+    const itemId = item.itemId || item.id;
+    
+    // Find matching catalog menu item
+    const foundMenu = catalogMenu.find(
+      (m) => String(m._id) === String(itemId) || m.itemId === itemId || m.id === itemId || m.name === item.name
+    );
+
+    if (foundMenu && foundMenu.price !== undefined) {
+      total += Number(foundMenu.price || 0) * qty;
+    } else {
+      // Find matching catalog offer
+      const foundOffer = catalogOffers.find(
+        (o) => String(o._id) === String(itemId) || o.offerId === itemId || o.id === itemId || o.title === item.name
+      );
+      if (foundOffer && foundOffer.price) {
+        total += Number(foundOffer.price) * qty;
+      } else {
+        total += Math.max(0, Number(item.price) || 0) * qty;
+      }
+    }
+  }
+  return total;
+};
+
 // 10. POST /api/payment/create-order
 app.post('/api/payment/create-order', async (req, res) => {
   try {
-    const { totalAmount } = req.body;
-    if (!totalAmount || totalAmount <= 0) {
-      return res.status(400).json({ success: false, error: 'Invalid total amount' });
+    const { items, totalAmount } = req.body;
+
+    let serverTotalAmount = 0;
+    if (Array.isArray(items) && items.length > 0) {
+      serverTotalAmount = await calculateOrderTotal(items);
+    } else {
+      serverTotalAmount = Number(totalAmount) || 0;
+    }
+
+    if (!serverTotalAmount || serverTotalAmount <= 0) {
+      return res.status(400).json({ success: false, error: 'Invalid total amount or empty items' });
     }
 
     const options = {
-      amount: Math.round(totalAmount * 100), // amount in paise
+      amount: Math.round(serverTotalAmount * 100), // amount in paise
       currency: 'INR',
       receipt: `receipt_${Date.now()}`
     };
@@ -597,7 +685,7 @@ app.post('/api/payment/create-order', async (req, res) => {
       return res.json({
         success: true,
         orderId: dummyOrderId,
-        amount: Math.round(totalAmount * 100),
+        amount: Math.round(serverTotalAmount * 100),
         currency: 'INR',
         key: razorpayKeyId
       });
@@ -623,6 +711,29 @@ app.post('/api/payment/verify', async (req, res) => {
       notes
     } = req.body;
 
+    // Mandatory signature & ID verification parameter check
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      console.error('❌ Missing mandatory Razorpay verification parameters!');
+      return res.status(400).json({
+        success: false,
+        error: 'Payment verification failed: razorpay_order_id, razorpay_payment_id, and razorpay_signature are required.'
+      });
+    }
+
+    const secret = process.env.RAZORPAY_KEY_SECRET || razorpayKeySecret;
+    const expectedSignature = crypto
+      .createHmac('sha256', secret)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest('hex');
+
+    if (expectedSignature !== razorpay_signature) {
+      console.error('❌ Razorpay Signature Verification Failed!');
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid payment signature'
+      });
+    }
+
     const cleanPhone = sanitizePhone(customerPhone);
     if (!cleanPhone || cleanPhone.length !== 10) {
       return res.status(400).json({
@@ -633,21 +744,12 @@ app.post('/api/payment/verify', async (req, res) => {
 
     const nameToSave = sanitizeInput(customerName) || 'Guest';
 
-    // Verify HMAC SHA256 signature if order & payment ID present
-    if (razorpay_order_id && razorpay_payment_id && razorpay_signature) {
-      const secret = process.env.RAZORPAY_KEY_SECRET || razorpayKeySecret;
-      const expectedSignature = crypto
-        .createHmac('sha256', secret)
-        .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-        .digest('hex');
-
-      if (expectedSignature !== razorpay_signature) {
-        console.error('❌ Razorpay Signature Verification Failed!');
-        return res.status(400).json({
-          success: false,
-          error: 'Invalid payment signature'
-        });
-      }
+    // Recalculate server total amount
+    let serverTotalAmount = 0;
+    if (Array.isArray(items) && items.length > 0) {
+      serverTotalAmount = await calculateOrderTotal(items);
+    } else {
+      serverTotalAmount = Number(totalAmount) || 0;
     }
 
     // Generate unique 4-digit token prefixed with '#'
@@ -659,10 +761,10 @@ app.post('/api/payment/verify', async (req, res) => {
       customerPhone: cleanPhone,
       pickupTime: sanitizeInput(pickupTime) || '15-20 mins',
       items: items || [],
-      totalAmount,
+      totalAmount: serverTotalAmount,
       paymentStatus: 'PAID',
       paymentMethod: 'RAZORPAY_PAYMENT_SHEET',
-      transactionRef: sanitizeInput(razorpay_payment_id) || `pay_${Date.now()}`,
+      transactionRef: sanitizeInput(razorpay_payment_id),
       notes: sanitizeInput(notes),
       createdAt: new Date()
     };
