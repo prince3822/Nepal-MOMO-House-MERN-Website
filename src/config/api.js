@@ -1,4 +1,4 @@
-const PROD_API_URL = 'https://nepal-momo-house-api.onrender.com';
+const PROD_API_URL = 'https://nepal-momo-house-mern-website.onrender.com';
 
 const getApiBaseUrl = () => {
   if (import.meta.env.VITE_API_URL) {
